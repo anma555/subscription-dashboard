@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>サブスク契約ダッシュボード</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+JP:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="/app.css">
+</head>
+<body>
+  <div class="sx">
+    <header class="sx-head" id="overview">
+      <div class="sx-titlerow">
+        <h1>サブスク契約ダッシュボード</h1>
+        <span class="sx-chip" title="サーバ起動時に生成したダミーデータです">サンプルデータ</span>
+        <span class="sx-chip sx-chip-seed">seed <b id="seed">—</b></span>
+      </div>
+      <p class="sx-lede" id="lede"><span data-period-label>—</span>のMRRは <b id="lede-mrr">—</b>（期間開始比 <b id="lede-mrr-chg">—</b>）。新規 <b id="lede-new">—</b> 件に対して解約 <b id="lede-churn">—</b> 件で、有効サブスクは <b id="lede-net">—</b> 件の純増でした。</p>
+      <p class="sx-asof">対象期間 <span id="range">—</span> ・ データは <span id="asof">—</span> 終了時点（日次）・ 生成 <span id="generated">—</span></p>
+    </header>
+
+    <div class="sx-filters" role="toolbar" aria-label="絞り込み">
+      <nav class="sx-tabs" aria-label="表示">
+        <a href="#dashboard" data-view="dashboard">ダッシュボード</a>
+        <a href="#raw" data-view="raw">生データ</a>
+      </nav>
+      <div class="sx-fgroup">
+        <span class="sx-flabel">期間</span>
+        <div class="sx-seg" role="group" aria-label="期間" data-param="period">
+          <button type="button" data-value="30d">30日</button>
+          <button type="button" data-value="90d">90日</button>
+          <button type="button" data-value="180d">180日</button>
+          <button type="button" data-value="365d">1年</button>
+          <button type="button" data-value="all" data-raw-only>全期間</button>
+        </div>
+      </div>
+      <div class="sx-fgroup">
+        <span class="sx-flabel">OS</span>
+        <div class="sx-seg" role="group" aria-label="プラットフォーム" data-param="platform">
+          <button type="button" data-value="all">すべて</button>
+          <button type="button" data-value="ios">iOS</button>
+          <button type="button" data-value="android">Android</button>
+        </div>
+      </div>
+      <div class="sx-fgroup">
+        <span class="sx-flabel">プラン</span>
+        <div class="sx-seg" role="group" aria-label="プラン" data-param="plan">
+          <button type="button" data-value="all">すべて</button>
+          <button type="button" data-value="monthly">月額</button>
+          <button type="button" data-value="yearly">年額</button>
+        </div>
+      </div>
+      <button type="button" class="sx-reset" id="reset">絞り込みをリセット</button>
+    </div>
+
+    <p class="sx-error" id="error" hidden>データを読み込めませんでした。サーバ（npm start）が起動しているか確認して、ページを再読み込みしてください。</p>
+
+    <!-- ダッシュボード -->
+    <main id="view-dashboard" class="sx-view">
+      <section class="sx-kpis" aria-label="主要指標">
+        <article class="sx-tile">
+          <h3>有効サブスク数</h3>
+          <p class="sx-val"><b data-kpi="active">—</b><span class="sx-unit">件</span></p>
+          <p class="sx-delta"><b data-kpi="active_chg" data-fmt="chg" data-good="up">—</b> 期間開始比</p>
+          <p class="sx-sub">純増 <b data-kpi="net_adds" data-fmt="signed">—</b> 件</p>
+        </article>
+        <article class="sx-tile">
+          <h3>新規</h3>
+          <p class="sx-val"><b data-kpi="new_subs">—</b><span class="sx-unit">件</span></p>
+          <p class="sx-delta"><b data-kpi="new_chg" data-fmt="chg" data-good="up">—</b> 前期間比</p>
+          <p class="sx-sub">1日平均 <b data-kpi="new_per_day" data-fmt="dec">—</b> 件</p>
+        </article>
+        <article class="sx-tile">
+          <h3>解約</h3>
+          <p class="sx-val"><b data-kpi="churned">—</b><span class="sx-unit">件</span></p>
+          <p class="sx-delta"><b data-kpi="churn_chg" data-fmt="chg" data-good="down">—</b> 前期間比</p>
+          <p class="sx-sub">月次解約率 <b data-kpi="churn_rate" data-fmt="pct2">—</b>（<b data-kpi="churn_rate_diff_pt" data-fmt="pt2" data-good="down">—</b>pt）</p>
+        </article>
+        <article class="sx-tile">
+          <h3>MRR</h3>
+          <p class="sx-val"><span class="sx-unit">¥</span><b data-kpi="mrr_man">—</b><span class="sx-unit">万</span></p>
+          <p class="sx-delta"><b data-kpi="mrr_chg" data-fmt="chg" data-good="up">—</b> 期間開始比</p>
+          <p class="sx-sub">ARPU ¥<b data-kpi="arpu">—</b> / 月</p>
+        </article>
+        <article class="sx-tile">
+          <h3>トライアル転換率</h3>
+          <p class="sx-val"><b data-kpi="conv_rate" data-fmt="pct">—</b></p>
+          <p class="sx-delta"><b data-kpi="conv_rate_diff_pt" data-fmt="pt1" data-good="up">—</b>pt 前期間比</p>
+          <p class="sx-sub"><b data-kpi="trial_conversions">—</b> 件 / 開始 <b data-kpi="trial_starts">—</b> 件</p>
+        </article>
+      </section>
+      <p class="sx-defs">MRRは年額プランを12で割った月額換算。月次解約率は期間中の解約数 ÷ 平均有効サブスク数を30日あたりに換算した値。トライアル転換率は期間中の有料転換数 ÷ トライアル開始数（トライアルは7日間）。前期間比は同じ長さの直前期間との比較です。</p>
+
+      <section class="sx-grid">
+        <article class="sx-card sx-wide">
+          <h2>MRR推移</h2>
+          <p class="sx-note"><span data-period-label>—</span>・日次。番号つきの縦線はキャンペーンや障害などの出来事です。</p>
+          <div class="sx-chart sx-tall" id="mrr-chart"></div>
+          <ol class="sx-events" id="event-list"></ol>
+        </article>
+
+        <article class="sx-card">
+          <h2>新規と解約</h2>
+          <p class="sx-note"><span data-period-label>—</span>・<span data-grain>—</span>。上が新規、下が解約。</p>
+          <ul class="sx-legend">
+            <li><i class="sx-sw" style="background: var(--c1)"></i>新規</li>
+            <li><i class="sx-sw" style="background: var(--critical)"></i>解約</li>
+          </ul>
+          <div class="sx-chart" id="flow-chart"></div>
+        </article>
+
+        <article class="sx-card">
+          <h2>トライアル開始と有料転換</h2>
+          <p class="sx-note"><span data-period-label>—</span>・<span data-grain>—</span>。転換は7日間のトライアル終了時に課金された件数。</p>
+          <ul class="sx-legend">
+            <li><i class="sx-sw" style="background: var(--bar-muted)"></i>トライアル開始</li>
+            <li><i class="sx-sw" style="background: var(--c2)"></i>有料転換</li>
+          </ul>
+          <div class="sx-chart" id="trial-chart"></div>
+        </article>
+
+        <article class="sx-card">
+          <h2>有効サブスクの内訳</h2>
+          <p class="sx-note"><span data-period-label>—</span>・OSとプランの組み合わせ別の積み上げ。</p>
+          <ul class="sx-legend" id="mix-legend">
+            <li data-seg="ios|monthly"><i class="sx-sw" style="background: var(--c1)"></i>iOS · 月額</li>
+            <li data-seg="ios|yearly"><i class="sx-sw" style="background: var(--c2)"></i>iOS · 年額</li>
+            <li data-seg="android|monthly"><i class="sx-sw" style="background: var(--c3)"></i>Android · 月額</li>
+            <li data-seg="android|yearly"><i class="sx-sw" style="background: var(--c4)"></i>Android · 年額</li>
+          </ul>
+          <div class="sx-chart" id="mix-chart"></div>
+        </article>
+
+        <article class="sx-card sx-wide">
+          <h2>セグメント別</h2>
+          <p class="sx-note"><span data-period-label>—</span>の実績。有効サブスクとMRRは期間末時点。</p>
+          <div class="sx-tablewrap">
+            <table class="sx-table">
+              <thead>
+                <tr>
+                  <th>セグメント</th><th>有効サブスク</th><th>新規</th><th>解約</th><th>月次解約率</th><th>MRR（万円）</th><th>MRR構成比</th><th>転換率</th>
+                </tr>
+              </thead>
+              <tbody id="seg-table"></tbody>
+            </table>
+          </div>
+        </article>
+      </section>
+    </main>
+
+    <!-- 生データ -->
+    <main id="view-raw" class="sx-view" hidden>
+      <section class="sx-card">
+        <div class="sx-rawhead">
+          <div>
+            <h2>生データ</h2>
+            <p class="sx-note">サーバが生成した行をそのまま表示しています。上の期間・OS・プランで絞り込めます。列名をクリックすると並べ替えます。</p>
+          </div>
+          <div class="sx-rawtools">
+            <div class="sx-seg" role="group" aria-label="データの種類" id="raw-mode">
+              <button type="button" data-value="daily">日次データ</button>
+              <button type="button" data-value="events">イベント</button>
+            </div>
+            <label class="sx-field">日付で検索
+              <input type="search" id="raw-search" placeholder="例 2026-08" autocomplete="off">
+            </label>
+            <label class="sx-field">表示件数
+              <select id="raw-size">
+                <option value="50">50</option>
+                <option value="100" selected>100</option>
+                <option value="500">500</option>
+              </select>
+            </label>
+            <button type="button" class="sx-btn" id="raw-download">CSVをダウンロード</button>
+          </div>
+        </div>
+        <p class="sx-rawcount" id="raw-count">—</p>
+        <div class="sx-tablewrap sx-rawwrap">
+          <table class="sx-table sx-rawtable">
+            <thead id="raw-thead"></thead>
+            <tbody id="raw-tbody"></tbody>
+          </table>
+        </div>
+        <div class="sx-pager">
+          <button type="button" class="sx-btn" id="raw-prev">前へ</button>
+          <span id="raw-page">—</span>
+          <button type="button" class="sx-btn" id="raw-next">次へ</button>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="/vendor/d3.min.js"></script>
+  <script src="/app.js"></script>
+</body>
+</html>
